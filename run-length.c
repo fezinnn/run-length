@@ -199,11 +199,15 @@ void descompactarRunLength(const char* nomeArquivoEntrada, const char* nomeArqui
 }
 
 // Função principal que determina se o programa deve compactar ou descompactar baseado na extensão do arquivo.
-int main()
+int main(int argc, char *argv[])
 {
+    if (argc != 3) {
+        printf("Uso: %s <arquivo de entrada> <arquivo de saida>\n", argv[0]);
+        return 1;
+    }
     // Caminhos dos arquivos de entrada e saída definidos diretamente no código.
-    char *entrada = "C:\\Users\\ppand\\Downloads\\balloons_noisy.ascii.pgm";
-    char *saida = "C:\\Users\\ppand\\Downloads\\balaoCompactado.pgmc";
+    char *entrada = argv[1];
+    char *saida = argv[2];
 
     // Determina o modo com base na extensão do arquivo de entrada.
     char *extensao = strrchr(entrada, '.');
