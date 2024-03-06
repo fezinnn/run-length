@@ -8,13 +8,19 @@ typedef struct {
     unsigned char *dados;
 } ImagemPGM;
 
-// Função para ler imagem PGM do arquivo.
-ImagemPGM *lerPGM(const char *nomeArquivo) {
-    FILE *arquivo = fopen(nomeArquivo, "r");
+FILE *abrirArquivo(const char *nomeArquivo, const char *modo) {
+    FILE *arquivo = fopen(nomeArquivo, modo);
     if (!arquivo) {
         perror("Erro ao abrir o arquivo");
         return NULL;
     }
+    return arquivo;
+}
+
+// Função para ler imagem PGM do arquivo.
+ImagemPGM *lerPGM(const char *nomeArquivo) {
+    FILE *arquivo = abrirArquivo(nomeArquivo, "r");
+
 
     ImagemPGM *imagem = malloc(sizeof(ImagemPGM));
     if (!imagem) {
@@ -83,11 +89,8 @@ ImagemPGM *lerPGM(const char *nomeArquivo) {
 void escreverPGM(const char *nomeArquivo, const ImagemPGM *imagem)
 {
     // Abre arquivo para escrita.
-    FILE *arquivo = fopen(nomeArquivo, "w");
-    if (!arquivo){
-        perror("Erro ao abrir o arquivo para escrita");
-        return;
-    }
+    FILE *arquivo = abrirArquivo(nomeArquivo, "w");
+
 
     // Escreve o cabeçalho da imagem PGM.
     fprintf(arquivo, "P2\n%d %d\n%d\n", imagem->largura, imagem->altura, imagem->maxval);
@@ -98,7 +101,7 @@ void escreverPGM(const char *nomeArquivo, const ImagemPGM *imagem)
             int idx = y * imagem->largura + x;
             fprintf(arquivo, "%d ", imagem->dados[idx]);
         }
-        fprintf(arquivo, "\n");
+        fprintf(arquivo, "\n");  // Nova linha após escrever uma linha completa.
     }
 
     // Fecha o arquivo.
@@ -108,11 +111,8 @@ void escreverPGM(const char *nomeArquivo, const ImagemPGM *imagem)
 // Função para compactar imagem PGM usando RLE.
 void compactarRunLength(const ImagemPGM *imagem, const char *nomeArquivo) {
     // Abre arquivo para escrita.
-    FILE *arquivo = fopen(nomeArquivo, "w");
-    if (!arquivo) {
-        perror("Erro ao abrir arquivo para escrita");
-        return;
-    }
+    FILE *arquivo = abrirArquivo(nomeArquivo, "w");
+
 
     // Escreve cabeçalho para arquivo compactado.
     fprintf(arquivo, "P8\n%d %d\n%d\n", imagem->largura, imagem->altura, imagem->maxval);
@@ -149,11 +149,8 @@ void compactarRunLength(const ImagemPGM *imagem, const char *nomeArquivo) {
 // Função para descompactar imagem PGM compactada com RLE.
 void descompactarRunLength(const char* nomeArquivoEntrada, const char* nomeArquivoSaida) {
     // Abre arquivo para leitura.
-    FILE* arquivoEntrada = fopen(nomeArquivoEntrada, "r");
-    if (!arquivoEntrada) {
-        perror("Erro ao abrir arquivo para leitura");
-        return;
-    }
+    FILE* arquivoEntrada = abrirArquivo(nomeArquivoEntrada, "r");
+
 
     // Lê cabeçalho do arquivo compactado.
     char formato[3];
@@ -188,7 +185,7 @@ void descompactarRunLength(const char* nomeArquivoEntrada, const char* nomeArqui
     fclose(arquivoEntrada);
 
     // Abre arquivo para escrita da imagem descompactada.
-    FILE* arquivoSaida = fopen(nomeArquivoSaida, "w");
+    FILE* arquivoSaida = abrirArquivo(nomeArquivoSaida, "w");
     if (!arquivoSaida) {
         perror("Erro ao abrir arquivo para escrita");
         free(imagem.dados); // Libera a memória alocada para os dados da imagem em caso de falha ao abrir o arquivo.
@@ -197,6 +194,7 @@ void descompactarRunLength(const char* nomeArquivoEntrada, const char* nomeArqui
 
     // Escreve o cabeçalho da imagem PGM descompactada no arquivo de saída.
     fprintf(arquivoSaida, "P2\n%d %d\n%d\n", largura, altura, maxval);
+
     // Escreve os dados dos pixels da imagem descompactada.
     for (int i = 0; i < largura * altura; i++) {
         fprintf(arquivoSaida, "%d", imagem.dados[i]);
