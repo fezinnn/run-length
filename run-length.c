@@ -3,65 +3,78 @@
 #include <string.h>
 
 // Estrutura para armazenar informações da imagem PGM.
-typedef struct
-{
+typedef struct {
     int largura, altura, maxval;
     unsigned char *dados;
 } ImagemPGM;
 
 // Função para ler imagem PGM do arquivo.
-ImagemPGM *lerPGM(const char *nomeArquivo)
-{
-    // Abre arquivo para leitura.
+ImagemPGM *lerPGM(const char *nomeArquivo) {
     FILE *arquivo = fopen(nomeArquivo, "r");
-    // Verifica se o arquivo foi aberto corretamente.
-    if (arquivo == NULL)
-    {
+    if (!arquivo) {
         perror("Erro ao abrir o arquivo");
         return NULL;
     }
 
-    // Aloca memória para a estrutura da imagem.
-    ImagemPGM *imagem = (ImagemPGM *)malloc(sizeof(ImagemPGM));
-    // Verifica se a memória foi alocada corretamente.
-    if (imagem == NULL)
-    {
+    ImagemPGM *imagem = malloc(sizeof(ImagemPGM));
+    if (!imagem) {
         perror("Erro ao alocar memória para a imagem");
         fclose(arquivo);
         return NULL;
     }
 
     char linha[1024];
-    fgets(linha, sizeof(linha), arquivo); // Lê o tipo do arquivo PGM (P2)
-    // Ignora comentários.
-    do
-    {
-        fgets(linha, sizeof(linha), arquivo); // Lê comentários ou dimensões.
-    } while (linha[0] == '#');
-    // Lê largura e altura da imagem.
-    sscanf(linha, "%d %d", &imagem->largura, &imagem->altura);
-    // Lê o valor máximo de cor.
-    fscanf(arquivo, "%d", &imagem->maxval);
+    if (!fgets(linha, sizeof(linha), arquivo)) { // Verifica leitura do tipo do arquivo PGM (P2)
+        perror("Erro ao ler o tipo do arquivo PGM");
+        free(imagem);
+        fclose(arquivo);
+        return NULL;
+    }
 
-    // Aloca memória para os dados da imagem (pixels).
-    imagem->dados = (unsigned char *)malloc(imagem->largura * imagem->altura);
-    if (imagem->dados == NULL)
-    {
+    // Ignora comentários.
+    do {
+        if (!fgets(linha, sizeof(linha), arquivo)) {
+            perror("Erro ao ler o cabeçalho da imagem");
+            free(imagem);
+            fclose(arquivo);
+            return NULL;
+        }
+    } while (linha[0] == '#');
+
+    if (sscanf(linha, "%d %d", &imagem->largura, &imagem->altura) != 2) {
+        perror("Erro ao ler dimensões da imagem");
+        free(imagem);
+        fclose(arquivo);
+        return NULL;
+    }
+
+    if (fscanf(arquivo, "%d", &imagem->maxval) != 1) {
+        perror("Erro ao ler valor máximo de cor");
+        free(imagem);
+        fclose(arquivo);
+        return NULL;
+    }
+
+    imagem->dados = malloc(imagem->largura * imagem->altura);
+    if (!imagem->dados) {
         perror("Erro ao alocar memória para os dados da imagem");
         free(imagem);
         fclose(arquivo);
         return NULL;
     }
 
-    // Lê os valores dos pixels.
-    for (int i = 0; i < imagem->largura * imagem->altura; i++)
-    {
+    for (int i = 0; i < imagem->largura * imagem->altura; i++) {
         int pixel;
-        fscanf(arquivo, "%d", &pixel);
+        if (fscanf(arquivo, "%d", &pixel) != 1) {
+            perror("Erro ao ler os valores dos pixels");
+            free(imagem->dados);
+            free(imagem);
+            fclose(arquivo);
+            return NULL;
+        }
         imagem->dados[i] = (unsigned char)pixel;
     }
 
-    // Fecha o arquivo.
     fclose(arquivo);
     return imagem;
 }
