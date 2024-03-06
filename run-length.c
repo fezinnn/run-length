@@ -84,20 +84,21 @@ void escreverPGM(const char *nomeArquivo, const ImagemPGM *imagem)
 {
     // Abre arquivo para escrita.
     FILE *arquivo = fopen(nomeArquivo, "w");
-    if (arquivo == NULL)
-    {
+    if (!arquivo){
         perror("Erro ao abrir o arquivo para escrita");
         return;
     }
 
     // Escreve o cabeçalho da imagem PGM.
     fprintf(arquivo, "P2\n%d %d\n%d\n", imagem->largura, imagem->altura, imagem->maxval);
+
     // Escreve os dados dos pixels.
-    for (int i = 0; i < imagem->largura * imagem->altura; i++)
-    {
-        fprintf(arquivo, "%d ", imagem->dados[i]);
-        if ((i + 1) % imagem->largura == 0)
-            fprintf(arquivo, "\n");
+    for (int y = 0; y < imagem->altura; y++) {
+        for (int x = 0; x < imagem->largura; x++) {
+            int idx = y * imagem->largura + x;
+            fprintf(arquivo, "%d ", imagem->dados[idx]);
+        }
+        fprintf(arquivo, "\n");
     }
 
     // Fecha o arquivo.
