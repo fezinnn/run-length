@@ -187,7 +187,6 @@ void descompactarRunLength(const char* nomeArquivoEntrada, const char* nomeArqui
     // Abre arquivo para escrita da imagem descompactada.
     FILE* arquivoSaida = abrirArquivo(nomeArquivoSaida, "w");
     if (!arquivoSaida) {
-        perror("Erro ao abrir arquivo para escrita");
         free(imagem.dados); // Libera a memória alocada para os dados da imagem em caso de falha ao abrir o arquivo.
         return;
     }
